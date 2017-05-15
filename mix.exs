@@ -38,7 +38,8 @@ defmodule Whathook.Mixfile do
      {:gettext, "~> 0.11"},
      {:cowboy, "~> 1.0"},
      {:credo, "~> 0.7", only: [:dev, :test]},
-     {:dialyxir, "~> 0.5", only: [:dev]}]
+     {:dialyxir, "~> 0.5", only: [:dev]},
+     {:ex_machina, "~> 2.0", only: [:test]}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

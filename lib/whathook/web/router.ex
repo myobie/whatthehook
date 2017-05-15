@@ -14,13 +14,14 @@ defmodule Whathook.Web.Router do
   end
 
   scope "/", Whathook.Web do
-    pipe_through :browser # Use the default browser stack
+    pipe_through :browser
 
     get "/", PageController, :index
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", Whathook.Web do
-  #   pipe_through :api
-  # end
+  scope "/api", Whathook.Web do
+    pipe_through :api
+
+    resources "/hooks", HookController, except: [:index, :new, :edit]
+  end
 end

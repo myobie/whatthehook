@@ -20,12 +20,12 @@ defmodule Whathook.Web.ConnCase do
       # Import conveniences for testing with connections
       use Phoenix.ConnTest
       import Whathook.Web.Router.Helpers
+      import Whathook.Factory
 
       # The default endpoint for testing
       @endpoint Whathook.Web.Endpoint
     end
   end
-
 
   setup tags do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Whathook.Repo)
@@ -34,5 +34,4 @@ defmodule Whathook.Web.ConnCase do
     end
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
-
 end

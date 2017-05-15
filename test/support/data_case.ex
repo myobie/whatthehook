@@ -22,6 +22,7 @@ defmodule Whathook.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import Whathook.DataCase
+      import Whathook.Factory
     end
   end
 

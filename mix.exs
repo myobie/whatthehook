@@ -29,17 +29,17 @@ defmodule Whathook.Mixfile do
   #
   # Type `mix help deps` for examples and options.
   defp deps do
-    [{:phoenix, "~> 1.3.0-rc"},
+    [{:phoenix, "~> 1.3.1"},
      {:phoenix_pubsub, "~> 1.0"},
-     {:phoenix_ecto, "~> 3.2"},
+     {:phoenix_ecto, "~> 3.3"},
      {:postgrex, ">= 0.0.0"},
-     {:phoenix_html, "~> 2.6"},
-     {:phoenix_live_reload, "~> 1.0", only: :dev},
-     {:gettext, "~> 0.11"},
-     {:cowboy, "~> 1.0"},
-     {:credo, "~> 0.7", only: [:dev, :test]},
+     {:phoenix_html, "~> 2.10"},
+     {:phoenix_live_reload, "~> 1.1", only: :dev},
+     {:gettext, "~> 0.15"},
+     {:cowboy, "~> 1.1"},
+     {:credo, "~> 0.8", only: [:dev, :test]},
      {:dialyxir, "~> 0.5", only: [:dev]},
-     {:ex_machina, "~> 2.0", only: [:test]}]
+     {:ex_machina, "~> 2.1", only: [:test]}]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

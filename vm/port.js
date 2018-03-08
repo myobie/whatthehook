@@ -1,5 +1,6 @@
 const { Transform } = require('stream')
 const { Erlang } = require('erlang_js')
+const { inspect } = require('util')
 
 function getSize (binary) {
   const sizeBinary = binary.slice(0, 4)
@@ -51,6 +52,18 @@ function termToBinary (term) {
   })
 }
 
+function after (delay, cb) {
+  return new Promise((resolve, reject) => {
+    try {
+      setTimeout(() => {
+        resolve(cb())
+      }, delay)
+    } catch (e) {
+      reject(e)
+    }
+  })
+}
+
 class Port extends Transform {
   constructor (options = {}) {
     const _log = options.log
@@ -60,10 +73,8 @@ class Port extends Transform {
 
     if (_log) { this.log = _log }
 
-    this.readUntil = 0
     this.buffer = Buffer.from('')
-    this.outbound = []
-    this.isReading = false
+    this.readUntil = 0
   }
 
   log () {}
@@ -92,21 +103,27 @@ class Port extends Transform {
       this.buffer = chunk
       this.readUntil = readUntil
 
-      Promise.all(subChunks.map(s => {
-        binaryToTerm(s)
-          .then(term => {
-            termToBinary('ok')
-              .then(t => this.push(t))
-              .catch(() => {})
-
-            this.emit('term', term)
-          })
-          .catch(e => Promise.reject(e))
-      }))
-        .then(() => cb())
-        .catch(e => cb(e))
-
       this.log(`leftovers are ${this.buffer} | ${this.readUntil}`)
+
+      if (subChunks.length > 0) {
+        Promise.all(subChunks.map(s => {
+          binaryToTerm(s)
+            .then(term => {
+              this.log(`received: ${inspect(term)}`)
+              // simulate doing a request
+              return after(1000, () => {
+                this
+                  .send(['ok', term])
+                  .catch(e => this.log(`error responding with term ${inspect(e)}`))
+              })
+            })
+            .catch(e => Promise.reject(e))
+        }))
+          .then(() => cb())
+          .catch(e => cb(e))
+      } else {
+        cb()
+      }
 
       this.log('done with this chunk')
     } catch (e) {
@@ -124,9 +141,11 @@ class Port extends Transform {
 
         const msg = Buffer.concat([len, b])
 
+        this.log(`sending: ${inspect(msg)}`)
+
         this.push(msg)
 
-        return Promise.resolve('ok')
+        return Promise.resolve(msg)
       })
       .catch(e => Promise.reject(e))
   }

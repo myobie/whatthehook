@@ -21,8 +21,6 @@ const setupCode = `
 
   delete global._imports
 
-  var state = {}
-
   var result = undefined
   var error = undefined
   var currentArguments = []
@@ -47,31 +45,43 @@ const setupCode = `
   }
 `
 
-const postCode = `
-  'use strict'
-
-  // TODO: add a try/catch in there
-  try {
-    Promise.resolve(request(...currentArguments))
-      .then(r => {
-        try {
-          finalResult(null, JSON.stringify(r))
-        } catch (e) {
-          log('result returned from request is invalid')
-        }
-      })
-      .catch(e => {
-        try {
-          finalResult(e, null)
-        } catch (wow) {
-          log('An unrecoverable error occured')
-          log(wow)
-        }
-      })
-  } catch (e) {
-    finalResult(e, null)
+function postCode (uuid, args) {
+  if (typeof uuid !== 'string') {
+    console.error('uuid is not a string')
+    throw new Error('uuid is not a string')
   }
-`
+
+  return `
+    'use strict'
+
+    ;(function () {
+      const uuid = '${uuid}'
+
+      try {
+        const currentArguments = ${JSON.stringify(args)}
+
+        Promise.resolve(request(...currentArguments))
+          .then(r => {
+            try {
+              finalResult(null, uuid, JSON.stringify(r))
+            } catch (e) {
+              log('result returned from request is invalid')
+            }
+          })
+          .catch(e => {
+            try {
+              finalResult(e, uuid, null)
+            } catch (wow) {
+              log('An unrecoverable error occured')
+              log(wow)
+            }
+          })
+      } catch (e) {
+        finalResult(e, uuid, null)
+      }
+    })()
+  `
+}
 
 module.exports = class Context {
   constructor (code, resultCallback) {
@@ -84,10 +94,12 @@ module.exports = class Context {
       // FIXME: this means we can only ever do one thing at a time
       //        instead we should have a UUID for every request and use
       //        that to corollate results
-      finalResult: function (err, resultString) {
-        resultCallback(err, resultString)
+      finalResult: function (err, uuid, resultString) {
+        resultCallback(err, uuid, resultString)
       }
     }
+
+    this._resultCallback = resultCallback
 
     this.timeout = 5000
     this._sandbox = {_imports: this._imports}
@@ -115,16 +127,19 @@ module.exports = class Context {
     this._run(user)
   }
 
-  execute (...args) {
-    try {
-      this._run(this._compile(`
-        'use strict'
-        currentArguments = ${JSON.stringify(args)}
-      `), 'arguments.js')
+  execute (uuid, ...args) {
+    let codeString
 
-      this._run(this._compile(postCode, 'execute.js'))
+    try {
+      codeString = postCode(uuid, args)
     } catch (e) {
+      console.error(e)
+      this._resultCallback(e, null, null)
+      return
     }
+
+    const compiledCode = this._compile(codeString)
+    this._run(compiledCode, 'execute.js')
   }
 
   _compile (code, filename) {

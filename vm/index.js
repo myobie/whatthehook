@@ -24,17 +24,20 @@ const code = `
   }
 `
 
-const c = new Context(code, (err, result) => {
+const c = new Context(code, (err, uuid, result) => {
   if (err) {
-    console.error('execution error', err)
+    console.error('execution error', uuid, err)
   } else {
-    console.log('result', result)
+    console.log('result', uuid, result)
   }
 })
 
 // invoke once
 c.prepare()
-c.execute({ user: 'myobie' })
+c.execute('1', { user: 'myobie' })
 
 // invoke again
-c.execute({ user: 'waht' })
+c.execute('2', { user: 'waht' })
+
+// invoke with a bad uuid
+c.execute(2, { user: 'will error' })

@@ -91,9 +91,6 @@ module.exports = class Context {
       log: this.log,
       fetch: this.fetch,
 
-      // FIXME: this means we can only ever do one thing at a time
-      //        instead we should have a UUID for every request and use
-      //        that to corollate results
       finalResult: function (err, uuid, resultString) {
         resultCallback(err, uuid, resultString)
       }

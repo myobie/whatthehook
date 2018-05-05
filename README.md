@@ -1,4 +1,4 @@
-# whathook.com
+# whatthehook.com
 
 A simple way to accept a webhook, do a small transformation, then forward along.
 

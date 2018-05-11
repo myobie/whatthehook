@@ -63,6 +63,7 @@ function postCode (uuid, args) {
         Promise.resolve(request(...currentArguments))
           .then(r => {
             try {
+              log('finalResult: ' + JSON.stringify(r))
               finalResult(null, uuid, JSON.stringify(r))
             } catch (e) {
               log('result returned from request is invalid')
@@ -84,11 +85,16 @@ function postCode (uuid, args) {
 }
 
 module.exports = class Context {
-  constructor (code, resultCallback) {
+  constructor (code, resultCallback, options = {}) {
     this._code = code
+    const _externalLog = options.log
+    this._externalLog = _externalLog
 
     this._imports = {
-      log: this.log,
+      log: function (what) {
+        console.log(inspect(what))
+        if (_externalLog) { _externalLog(what) }
+      },
       fetch: this.fetch,
 
       finalResult: function (err, uuid, resultString) {
@@ -105,6 +111,7 @@ module.exports = class Context {
 
   log (what) {
     console.log(inspect(what))
+    if (this._externalLog) { this._externalLog(what) }
   }
 
   fetch () {
@@ -140,7 +147,7 @@ module.exports = class Context {
   }
 
   _compile (code, filename) {
-    console.log(`compiling code:
+    this.log(`compiling code:
 ${code}
 `)
     try {

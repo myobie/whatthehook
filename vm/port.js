@@ -69,9 +69,21 @@ class Port extends Transform {
     const _log = options.log
     delete options.log
 
+    const _callback = options.callback
+    delete options.callback
+    delete options.cb
+
     super(options)
 
     if (_log) { this.log = _log }
+
+    if (_callback) {
+      this.callback = _callback
+    } else {
+      this.callback = function (term) {
+        return after(1000, () => term)
+      }
+    }
 
     this.buffer = Buffer.from('')
     this.readUntil = 0
@@ -105,33 +117,33 @@ class Port extends Transform {
 
       this.log(`leftovers are ${this.buffer} | ${this.readUntil}`)
 
+      const send = this.send.bind(this)
+
       if (subChunks.length > 0) {
-        Promise.all(subChunks.map(s => {
+        subChunks.map(s => {
           binaryToTerm(s)
             .then(term => {
-              this.log(`received: ${inspect(term)}`)
-              // simulate doing a request
-              return after(1000, () => {
-                this
-                  .send(['ok', term])
-                  .catch(e => this.log(`error responding with term ${inspect(e)}`))
-              })
+              term = String(term.value)
+              this.log('received msg and invoking port callback')
+              this.log(`=> ${inspect(term)}`)
+              this.callback(term, send, cb)
             })
             .catch(e => Promise.reject(e))
-        }))
-          .then(() => cb())
-          .catch(e => cb(e))
+        })
       } else {
         cb()
       }
 
       this.log('done with this chunk')
     } catch (e) {
-      return cb(e)
+      this.log(`outermost catch: ${inspect(e)}`)
+      cb(e)
     }
   }
 
   async send (term) {
+    this.log(`sending back term ${inspect(term)}`)
+
     return termToBinary(term)
       .then(b => {
         this.log('about to push msg...')

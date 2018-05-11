@@ -22,7 +22,6 @@ defmodule Whathook.VM do
 
   def handle_call(:close, _from, %{port: port} = state) do
     Port.close(port)
-    state = Map.delete(state, :port)
     {:reply, :ok, state}
   end
 
@@ -31,9 +30,14 @@ defmodule Whathook.VM do
     {:reply, result, state}
   end
 
-  def handle_info({_, {:data, data}}, state) do
+  def handle_info({_from, {:data, data}}, state) do
     term = :erlang.binary_to_term(data, [:safe])
     IO.inspect({:received_term, term})
+    {:noreply, state}
+  end
+
+  def handle_info({from_port, {:exit_status, status}}, state) when is_port(from_port) do
+    IO.inspect({:EXIT, "the port process exited with status #{status}"})
     {:noreply, state}
   end
 

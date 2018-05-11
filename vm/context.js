@@ -90,12 +90,17 @@ module.exports = class Context {
     const _externalLog = options.log
     this._externalLog = _externalLog
 
+    const _internalFetch = this.fetch.bind(this)
+
     this._imports = {
       log: function (what) {
         console.log(inspect(what))
         if (_externalLog) { _externalLog(what) }
       },
-      fetch: this.fetch,
+
+      fetch: function (...args) {
+        return _internalFetch(...args)
+      },
 
       finalResult: function (err, uuid, resultString) {
         resultCallback(err, uuid, resultString)

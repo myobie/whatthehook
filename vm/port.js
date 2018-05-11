@@ -126,9 +126,23 @@ class Port extends Transform {
               term = String(term.value)
               this.log('received msg and invoking port callback')
               this.log(`=> ${inspect(term)}`)
-              this.callback(term, send, cb)
+
+              this.callback(term, result => {
+                send(result)
+                  .then(() => {
+                    this.log('next')
+                    cb()
+                  })
+                  .catch(e => {
+                    this.log(`error sending: ${inspect(e)}`)
+                    cb(e)
+                  })
+              })
             })
-            .catch(e => Promise.reject(e))
+            .catch(e => {
+              this.log(`problem reading sent binary chunk: ${inspect(e)}`)
+              cb(e)
+            })
         })
       } else {
         cb()

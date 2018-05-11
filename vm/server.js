@@ -23,30 +23,18 @@ function nextCounter () {
   return String(counter)
 }
 
-function callback (term, send, next) {
+function callback (term, next) {
   log('callback!')
-
-  function sendThenNext (what) {
-    send(what)
-      .then(() => {
-        log('next')
-        next()
-      })
-      .catch(e => {
-        log(`error sending: ${e}`)
-        next()
-      })
-  }
 
   try {
     const c = new Context(term, (err, uid, result) => {
       if (err) {
-        sendThenNext(['error', uid, inspect(err)])
+        next(['error', uid, inspect(err)])
       } else {
         try {
-          sendThenNext(['ok', uid, result])
+          next(['ok', uid, result])
         } catch (e) {
-          sendThenNext(['error', uid, inspect(e)])
+          next(['error', uid, inspect(e)])
         }
       }
     }, { log })
@@ -55,7 +43,7 @@ function callback (term, send, next) {
     log('context created and will send result')
   } catch (e) {
     log(`There was an error ${inspect(e)}`)
-    sendThenNext(['error', `There was an error ${inspect(e)}`])
+    next(['error', `There was an error ${inspect(e)}`])
   }
 }
 

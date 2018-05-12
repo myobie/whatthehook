@@ -1,3 +1,12 @@
+/*
+ * TODO
+ * - Make a state machine so the context can only be prepared once
+ * - Make sure we are prepared before executing
+ * - When a callback comes into execute, store it in a dictionary with it's
+ *   uuid and then match that uuid in the finalResult function so we can
+ *   support multiple pending callbacks
+*/
+
 const vm = require('vm')
 const { inspect } = require('util')
 
@@ -6,14 +15,15 @@ const setupCode = `
 
   var global = this
 
+  contextify(global)
+  contextify(this)
+
   Object.defineProperties(global, {
     global: {value: global},
     GLOBAL: {value: global},
     root: {value: global},
     isVM: {value: true}
   })
-
-  contextify(global)
 
   for (let i in global._imports) {
     global[i] = contextify(global._imports[i])
@@ -47,7 +57,6 @@ const setupCode = `
 
 function postCode (uuid, args) {
   if (typeof uuid !== 'string') {
-    console.error('uuid is not a string')
     throw new Error('uuid is not a string')
   }
 
@@ -92,9 +101,8 @@ module.exports = class Context {
 
     const _internalFetch = this.fetch.bind(this)
 
-    this._imports = {
+    const _imports = {
       log: function (what) {
-        console.log(inspect(what))
         if (_externalLog) { _externalLog(what) }
       },
 
@@ -109,13 +117,14 @@ module.exports = class Context {
 
     this._resultCallback = resultCallback
 
+    const _sandbox = Object.create(null)
+    _sandbox._imports = _imports
+
     this.timeout = 5000
-    this._sandbox = {_imports: this._imports}
-    this._context = vm.createContext(this._sandbox)
+    this._context = vm.createContext(_sandbox)
   }
 
   log (what) {
-    console.log(inspect(what))
     if (this._externalLog) { this._externalLog(what) }
   }
 
@@ -142,7 +151,7 @@ module.exports = class Context {
     try {
       codeString = postCode(uuid, args)
     } catch (e) {
-      console.error(e)
+      this.log(inspect(e))
       this._resultCallback(e, null, null)
       return
     }
@@ -158,7 +167,7 @@ ${code}
     try {
       return new vm.Script(code, { filename, timeout: this.timeout, displayErrors: true })
     } catch (e) {
-      console.error('code compilation failed', e)
+      this.log(`code compilation failed: ${inspect(e)}`)
       throw e
     }
   }
@@ -167,7 +176,7 @@ ${code}
     try {
       return script.runInContext(this._context, { filename, timeout: this.timeout, displayErrors: true })
     } catch (e) {
-      console.error('execution error', e)
+      this.log(`execution error: ${inspect(e)}`)
       throw e
     }
   }

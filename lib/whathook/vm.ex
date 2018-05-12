@@ -6,7 +6,7 @@ defmodule Whathook.VM do
     {:ok, %{}}
   end
 
-  def handle_call(:start, _from, state) do
+  def handle_call({:start, code}, _from, state) do
     port = Port.open(
       {:spawn_executable, System.find_executable("npm")},
       [:binary, :use_stdio, :stderr_to_stdout, :exit_status,
@@ -15,9 +15,16 @@ defmodule Whathook.VM do
        {:cd, Path.absname('./vm/')}]
     )
 
-    state = Map.put(state, :port, port)
+    json = Poison.encode!(%{type: :code, code: code})
 
-    {:reply, :ok, state}
+    case Port.command(port, :erlang.term_to_binary(json)) do
+      "ok" ->
+        state = Map.put(state, :port, port)
+        {:reply, :ok, state}
+      error ->
+        Port.close(port)
+        {:reply, {:error, error}, state}
+    end
   end
 
   def handle_call(:close, _from, %{port: port} = state) do
@@ -25,8 +32,13 @@ defmodule Whathook.VM do
     {:reply, :ok, state}
   end
 
-  def handle_call({:command, command}, _from, %{port: port} = state) do
-    result = Port.command(port, :erlang.term_to_binary(command))
+  def handle_call(:close, _from, state) do
+    {:reply, :ok, state}
+  end
+
+  def handle_call({:execute, args}, _from, %{port: port} = state) do
+    json = Poison.encode!(%{type: :args, args: args})
+    result = Port.command(port, :erlang.term_to_binary(json))
     {:reply, result, state}
   end
 

@@ -16,34 +16,58 @@ function log (msg) {
 
 log('starting up...')
 
-let counter = 0
-
-function nextCounter () {
-  counter += 1
-  return String(counter)
-}
+let context
 
 function callback (term, next) {
   log('callback!')
 
+  const json = JSON.parse(term)
+
+  if (json.type === 'code') {
+    start(json.code, next)
+  } else if (json.type === 'args') {
+    execute(json.args, next)
+  } else {
+    next(['error', 'unknown message'])
+  }
+}
+
+function start (code, next) {
+  if (context !== undefined) {
+    next(['error', 'context already started'])
+    return
+  }
+
   try {
-    const c = new Context(term, (err, uid, result) => {
-      if (err) {
-        next(['error', uid, inspect(err)])
-      } else {
-        try {
-          next(['ok', uid, result])
-        } catch (e) {
-          next(['error', uid, inspect(e)])
-        }
-      }
-    }, { log })
-    c.prepare()
-    c.execute(nextCounter(), {})
-    log('context created and will send result')
+    context = new Context(code, { log })
+    context.prepare()
   } catch (e) {
     log(`There was an error ${inspect(e)}`)
     next(['error', `There was an error ${inspect(e)}`])
+  }
+}
+
+function execute (args, uuid, next) {
+  if (context === undefined) {
+    next(['error', 'context not started'])
+    return
+  }
+
+  try {
+    context.execute(args, uuid, (err, result) => {
+      if (err) {
+        next(['error', uuid, inspect(err)])
+      } else {
+        try {
+          next(['ok', uuid, result])
+        } catch (e) {
+          next(['error', uuid, inspect(e)])
+        }
+      }
+    })
+  } catch (e) {
+    log(`There was an error ${inspect(e)}`)
+    next(['error', uuid, `There was an error ${inspect(e)}`])
   }
 }
 

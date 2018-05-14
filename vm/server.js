@@ -26,7 +26,7 @@ function callback (term, next) {
   if (json.type === 'code') {
     start(json.code, next)
   } else if (json.type === 'args') {
-    execute(json.args, next)
+    execute(json.args, json.uuid, next)
   } else {
     next(['error', 'unknown message'])
   }
@@ -41,6 +41,7 @@ function start (code, next) {
   try {
     context = new Context(code, { log })
     context.prepare()
+    next(['ok', 'prepared'])
   } catch (e) {
     log(`There was an error ${inspect(e)}`)
     next(['error', `There was an error ${inspect(e)}`])
@@ -55,14 +56,14 @@ function execute (args, uuid, next) {
 
   try {
     context.execute(args, uuid, (err, result) => {
-      if (err) {
-        next(['error', uuid, inspect(err)])
-      } else {
-        try {
+      try {
+        if (err) {
+          next(['error', uuid, inspect(err)])
+        } else {
           next(['ok', uuid, result])
-        } catch (e) {
-          next(['error', uuid, inspect(e)])
         }
+      } catch (e) {
+        next(['error', uuid, inspect(e)])
       }
     })
   } catch (e) {

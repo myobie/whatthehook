@@ -28,6 +28,12 @@ Run the server with:
 mix phx.server
 ```
 
+or interactive `iex` with:
+
+```sh
+iex -S mix
+```
+
 ## Tests
 
 Run the elixir tests with:
@@ -42,4 +48,16 @@ Also can do elixir linting with:
 mix do dialyxir, credo
 ```
 
+## Play around
 
+This something like this:
+
+```iex
+iex(1)> {:ok, pid} = GenServer.start_link(Whathook.VM, %{})
+iex(2)> GenServer.call(pid, {:start, "function request (req) { return {status: 200, body: { counter: req.params.counter * 2 }} }"})
+iex(3)> GenServer.call(pid, {:execute, [%{params: %{counter: 4}}]})
+iex(4)> GenServer.call(pid, {:execute, [%{params: %{counter: 22}}]})
+iex(5)> GenServer.call(pid, :close)
+```
+
+Also `$ tail -f vm/debug.log` to see what the node vm thinks is going on.

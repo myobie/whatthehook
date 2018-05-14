@@ -73,33 +73,35 @@ function postCode (uuid, args) {
           .then(r => {
             try {
               log('finalResult: ' + JSON.stringify(r))
-              finalResult(null, uuid, JSON.stringify(r))
+              finalResult(uuid, null, JSON.stringify(r))
             } catch (e) {
               log('result returned from request is invalid')
             }
           })
           .catch(e => {
             try {
-              finalResult(e, uuid, null)
+              finalResult(uuid, e, null)
             } catch (wow) {
               log('An unrecoverable error occured')
               log(wow)
             }
           })
       } catch (e) {
-        finalResult(e, uuid, null)
+        finalResult(uuid, e, null)
       }
     })()
   `
 }
 
 module.exports = class Context {
-  constructor (code, resultCallback, options = {}) {
+  constructor (code, options = {}) {
+    this._resultCallbacks = {}
     this._code = code
     const _externalLog = options.log
     this._externalLog = _externalLog
 
     const _internalFetch = this.fetch.bind(this)
+    const _internalResultCallback = this.resultCallback.bind(this)
 
     const _imports = {
       log: function (what) {
@@ -110,18 +112,32 @@ module.exports = class Context {
         return _internalFetch(...args)
       },
 
-      finalResult: function (err, uuid, resultString) {
-        resultCallback(err, uuid, resultString)
+      finalResult: function (uuid, err, result) {
+        _internalResultCallback(uuid, err, result)
       }
     }
-
-    this._resultCallback = resultCallback
 
     const _sandbox = Object.create(null)
     _sandbox._imports = _imports
 
     this.timeout = 5000
     this._context = vm.createContext(_sandbox)
+  }
+
+  resultCallback (uuid, err, result) {
+    const cb = this._resultCallbacks[uuid]
+
+    if (cb) {
+      try {
+        cb(err, result)
+      } catch (e) {
+        this.log(`result callback failed for ${uuid}: ${inspect(e)}`)
+      }
+    } else {
+      this.log(`no result callback for ${uuid} - ${inspect(err)} - ${inspect(result)}`)
+    }
+
+    delete this._resultCallbacks[uuid]
   }
 
   log (what) {
@@ -145,14 +161,16 @@ module.exports = class Context {
     this._run(user)
   }
 
-  execute (uuid, ...args) {
+  execute (args, uuid, cb) {
+    this._resultCallbacks[uuid] = cb
+
     let codeString
 
     try {
       codeString = postCode(uuid, args)
     } catch (e) {
       this.log(inspect(e))
-      this._resultCallback(e, null, null)
+      this.resultCallback(uuid, e, null)
       return
     }
 

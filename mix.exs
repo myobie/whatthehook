@@ -37,6 +37,7 @@ defmodule Whathook.Mixfile do
      {:phoenix_live_reload, "~> 1.1", only: :dev},
      {:gettext, "~> 0.15"},
      {:cowboy, "~> 1.1"},
+     {:secure_random, "~> 0.5.1"},
      {:credo, "~> 0.8", only: [:dev, :test]},
      {:dialyxir, "~> 0.5", only: [:dev]},
      {:ex_machina, "~> 2.1", only: [:test]}]

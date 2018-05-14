@@ -1,4 +1,5 @@
 defmodule Whathook.VM do
+  require Logger
   use GenServer
 
   def init(_) do
@@ -16,15 +17,12 @@ defmodule Whathook.VM do
     )
 
     json = Poison.encode!(%{type: :code, code: code})
+    result = Port.command(port, :erlang.term_to_binary(json))
+    _ = Logger.debug("port result: #{inspect(result)}")
 
-    case Port.command(port, :erlang.term_to_binary(json)) do
-      "ok" ->
-        state = Map.put(state, :port, port)
-        {:reply, :ok, state}
-      error ->
-        Port.close(port)
-        {:reply, {:error, error}, state}
-    end
+    state = Map.put(state, :port, port)
+
+    {:reply, :ok, state}
   end
 
   def handle_call(:close, _from, %{port: port} = state) do
@@ -33,13 +31,16 @@ defmodule Whathook.VM do
   end
 
   def handle_call(:close, _from, state) do
+    _ = Logger.debug("Closing a port that is not open #{inspect(self())}")
     {:reply, :ok, state}
   end
 
   def handle_call({:execute, args}, _from, %{port: port} = state) do
-    json = Poison.encode!(%{type: :args, args: args})
+    uuid = SecureRandom.uuid()
+    json = Poison.encode!(%{type: :args, args: args, uuid: uuid})
     result = Port.command(port, :erlang.term_to_binary(json))
-    {:reply, result, state}
+    _ = Logger.debug("port result: #{inspect(result)}")
+    {:reply, :ok, state}
   end
 
   def handle_info({_from, {:data, data}}, state) do

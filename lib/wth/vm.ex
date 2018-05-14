@@ -2,9 +2,21 @@ defmodule WTH.VM do
   require Logger
   use GenServer
 
-  def init(_) do
+  def init(%{notify: pid}) do
     Process.flag(:trap_exit, true)
-    {:ok, %{}}
+    state = %{
+      notify: pid,
+      port: nil,
+      prepared?: false,
+      closing?: false,
+      executions: %{}
+    }
+    {:ok, state}
+  end
+
+  defp write(port, term) do
+    json = Poison.encode!(term)
+    true = Port.command(port, :erlang.term_to_binary(json))
   end
 
   def handle_call({:start, code}, _from, state) do
@@ -16,9 +28,7 @@ defmodule WTH.VM do
        {:cd, Path.absname('./vm/')}]
     )
 
-    json = Poison.encode!(%{type: :code, code: code})
-    result = Port.command(port, :erlang.term_to_binary(json))
-    _ = Logger.debug("port result: #{inspect(result)}")
+    write(port, %{type: :code, code: code})
 
     state = Map.put(state, :port, port)
 
@@ -26,8 +36,10 @@ defmodule WTH.VM do
   end
 
   def handle_call(:close, _from, %{port: port} = state) do
-    Port.close(port)
-    {:reply, :ok, state}
+    unless state.closing? do
+      Port.close(port)
+    end
+    {:reply, :ok, %{state | closing?: true}}
   end
 
   def handle_call(:close, _from, state) do
@@ -35,18 +47,40 @@ defmodule WTH.VM do
     {:reply, :ok, state}
   end
 
-  def handle_call({:execute, args}, _from, %{port: port} = state) do
-    uuid = SecureRandom.uuid()
-    json = Poison.encode!(%{type: :args, args: args, uuid: uuid})
-    result = Port.command(port, :erlang.term_to_binary(json))
-    _ = Logger.debug("port result: #{inspect(result)}")
-    {:reply, :ok, state}
+  def handle_call({:execute, args}, _from, %{port: port, executions: executions} = state) do
+    cond do
+      not state.prepared? -> {:reply, {:error, :unprepared}, state}
+      true ->
+        uuid = SecureRandom.uuid()
+        executions = Map.put(executions, uuid, args)
+        write(port, %{type: :args, args: args, uuid: uuid})
+        {:reply, {:ok, uuid}, %{state | executions: executions}}
+    end
+  end
+
+  defp handle_port_data({'ok', 'prepared'}, state) do
+    {:noreply, %{state | prepared?: true}}
+  end
+
+  defp handle_port_data({'ok', uuid, result}, %{notify: pid} = state) do
+    send(pid, {:ok, to_string(uuid), to_string(result)})
+    {:noreply, state}
+  end
+
+  defp handle_port_data({'error', uuid, result}, %{notify: pid} = state) do
+    send(pid, {:error, to_string(uuid), to_string(result)})
+    {:noreply, state}
+  end
+
+  defp handle_port_data(term, state) do
+    _ = Logger.error("Unknown data sent from node vm: #{inspect(term)}")
+    {:noreply, state}
   end
 
   def handle_info({_from, {:data, data}}, state) do
-    term = :erlang.binary_to_term(data, [:safe])
-    IO.inspect({:received_term, term})
-    {:noreply, state}
+    data
+    |> :erlang.binary_to_term([:safe])
+    |> handle_port_data(state)
   end
 
   def handle_info({from_port, {:exit_status, status}}, state) when is_port(from_port) do
@@ -56,8 +90,7 @@ defmodule WTH.VM do
 
   def handle_info({:EXIT, from_port, reason}, %{port: port} = state) when from_port == port do
     IO.inspect({:EXIT, "the port died (#{inspect(reason)}), cleaning up"})
-    state = Map.delete(state, :port)
-    {:noreply, state}
+    {:noreply, %{state | port: nil, closing?: false}}
   end
 
   def handle_info({:EXIT, from, reason}, state) do

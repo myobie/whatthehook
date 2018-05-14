@@ -1,7 +1,7 @@
-defmodule Whathook.Web.HookControllerTest do
-  use Whathook.Web.ConnCase
+defmodule WTH.Web.HookControllerTest do
+  use WTH.Web.ConnCase
 
-  alias Whathook.Webhooks.Hook
+  alias WTH.Webhooks.Hook
 
   setup %{conn: conn} do
     conn = conn

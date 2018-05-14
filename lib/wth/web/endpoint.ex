@@ -1,14 +1,14 @@
-defmodule Whathook.Web.Endpoint do
-  use Phoenix.Endpoint, otp_app: :whathook
+defmodule WTH.Web.Endpoint do
+  use Phoenix.Endpoint, otp_app: :wth
 
-  socket "/socket", Whathook.Web.UserSocket
+  socket "/socket", WTH.Web.UserSocket
 
   # Serve at "/" the static files from "priv/static" directory.
   #
   # You should set gzip to true if you are running phoenix.digest
   # when deploying your static files in production.
   plug Plug.Static,
-    at: "/", from: :whathook, gzip: false,
+    at: "/", from: :wth, gzip: false,
     only: ~w(css fonts images js favicon.ico robots.txt)
 
   # Code reloading can be explicitly enabled under the
@@ -35,10 +35,10 @@ defmodule Whathook.Web.Endpoint do
   # Set :encryption_salt if you would also like to encrypt it.
   plug Plug.Session,
     store: :cookie,
-    key: "_whathook_key",
+    key: "_wth_key",
     signing_salt: "rfpksRoO"
 
-  plug Whathook.Web.Router
+  plug WTH.Web.Router
 
   @doc """
   Dynamically loads configuration from the system environment

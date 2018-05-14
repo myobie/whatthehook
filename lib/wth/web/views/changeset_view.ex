@@ -1,11 +1,11 @@
-defmodule Whathook.Web.ChangesetView do
-  use Whathook.Web, :view
+defmodule WTH.Web.ChangesetView do
+  use WTH.Web, :view
 
   @doc """
   Traverses and translates changeset errors.
 
   See `Ecto.Changeset.traverse_errors/2` and
-  `Whathook.Web.ErrorHelpers.translate_error/1` for more details.
+  `WTH.Web.ErrorHelpers.translate_error/1` for more details.
   """
   def translate_errors(changeset) do
     Ecto.Changeset.traverse_errors(changeset, &translate_error/1)

@@ -2,7 +2,7 @@ use Mix.Config
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
-config :whathook, Whathook.Web.Endpoint,
+config :wth, WTH.Web.Endpoint,
   http: [port: 4001],
   server: false
 
@@ -10,10 +10,10 @@ config :whathook, Whathook.Web.Endpoint,
 config :logger, level: :warn
 
 # Configure your database
-config :whathook, Whathook.Repo,
+config :wth, WTH.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: System.get_env("USER"),
   password: "",
-  database: "whathook_test",
+  database: "wth_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox

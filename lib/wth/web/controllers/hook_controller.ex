@@ -1,10 +1,10 @@
-defmodule Whathook.Web.HookController do
-  use Whathook.Web, :controller
+defmodule WTH.Web.HookController do
+  use WTH.Web, :controller
 
-  alias Whathook.Webhooks
-  alias Whathook.Webhooks.Hook
+  alias WTH.Webhooks
+  alias WTH.Webhooks.Hook
 
-  action_fallback Whathook.Web.FallbackController
+  action_fallback WTH.Web.FallbackController
 
   def create(conn, params) do
     with {:ok, %Hook{} = hook} <- Webhooks.create_hook(params) do

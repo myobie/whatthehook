@@ -53,7 +53,7 @@ mix do dialyxir, credo
 This something like this:
 
 ```iex
-iex(1)> {:ok, pid} = GenServer.start_link(Whathook.VM, %{})
+iex(1)> {:ok, pid} = GenServer.start_link(WTH.VM, %{})
 iex(2)> GenServer.call(pid, {:start, "function request (req) { return {status: 200, body: { counter: req.params.counter * 2 }} }"})
 iex(3)> GenServer.call(pid, {:execute, [%{params: %{counter: 4}}]})
 iex(4)> GenServer.call(pid, {:execute, [%{params: %{counter: 22}}]})

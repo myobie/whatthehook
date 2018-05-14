@@ -1,4 +1,4 @@
-defmodule Whathook.Web.ConnCase do
+defmodule WTH.Web.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -19,18 +19,18 @@ defmodule Whathook.Web.ConnCase do
     quote do
       # Import conveniences for testing with connections
       use Phoenix.ConnTest
-      import Whathook.Web.Router.Helpers
-      import Whathook.Factory
+      import WTH.Web.Router.Helpers
+      import WTH.Factory
 
       # The default endpoint for testing
-      @endpoint Whathook.Web.Endpoint
+      @endpoint WTH.Web.Endpoint
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Whathook.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(WTH.Repo)
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Whathook.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(WTH.Repo, {:shared, self()})
     end
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end

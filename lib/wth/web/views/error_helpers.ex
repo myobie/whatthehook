@@ -1,4 +1,4 @@
-defmodule Whathook.Web.ErrorHelpers do
+defmodule WTH.Web.ErrorHelpers do
   @moduledoc """
   Conveniences for translating and building error messages.
   """
@@ -32,9 +32,9 @@ defmodule Whathook.Web.ErrorHelpers do
     #     dgettext "errors", "is invalid"
     #
     if count = opts[:count] do
-      Gettext.dngettext(Whathook.Web.Gettext, "errors", msg, msg, count, opts)
+      Gettext.dngettext(WTH.Web.Gettext, "errors", msg, msg, count, opts)
     else
-      Gettext.dgettext(Whathook.Web.Gettext, "errors", msg, opts)
+      Gettext.dgettext(WTH.Web.Gettext, "errors", msg, opts)
     end
   end
 end

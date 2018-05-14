@@ -1,4 +1,4 @@
 ExUnit.start()
 
-Ecto.Adapters.SQL.Sandbox.mode(Whathook.Repo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(WTH.Repo, :manual)
 

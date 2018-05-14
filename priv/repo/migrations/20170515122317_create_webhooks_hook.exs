@@ -1,4 +1,4 @@
-defmodule Whathook.Repo.Migrations.CreateWhathook.Webhooks.Hook do
+defmodule WTH.Repo.Migrations.CreateWTH.Webhooks.Hook do
   use Ecto.Migration
 
   def change do

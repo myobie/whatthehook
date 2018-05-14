@@ -1,12 +1,12 @@
-defmodule Whathook.Web do
+defmodule WTH.Web do
   @moduledoc """
   A module that keeps using definitions for controllers,
   views and so on.
 
   This can be used in your application as:
 
-      use Whathook.Web, :controller
-      use Whathook.Web, :view
+      use WTH.Web, :controller
+      use WTH.Web, :view
 
   The definitions below will be executed for every view,
   controller, etc, so keep them short and clean, focused
@@ -18,17 +18,17 @@ defmodule Whathook.Web do
 
   def controller do
     quote do
-      use Phoenix.Controller, namespace: Whathook.Web
+      use Phoenix.Controller, namespace: WTH.Web
       import Plug.Conn
-      import Whathook.Web.Router.Helpers
-      import Whathook.Web.Gettext
+      import WTH.Web.Router.Helpers
+      import WTH.Web.Gettext
     end
   end
 
   def view do
     quote do
-      use Phoenix.View, root: "lib/whathook/web/templates",
-                        namespace: Whathook.Web
+      use Phoenix.View, root: "lib/wth/web/templates",
+                        namespace: WTH.Web
 
       # Import convenience functions from controllers
       import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
@@ -36,9 +36,9 @@ defmodule Whathook.Web do
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML
 
-      import Whathook.Web.Router.Helpers
-      import Whathook.Web.ErrorHelpers
-      import Whathook.Web.Gettext
+      import WTH.Web.Router.Helpers
+      import WTH.Web.ErrorHelpers
+      import WTH.Web.Gettext
     end
   end
 
@@ -53,7 +53,7 @@ defmodule Whathook.Web do
   def channel do
     quote do
       use Phoenix.Channel
-      import Whathook.Web.Gettext
+      import WTH.Web.Gettext
     end
   end
 

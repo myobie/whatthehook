@@ -1,5 +1,5 @@
-defmodule Whathook.Repo do
-  use Ecto.Repo, otp_app: :whathook
+defmodule WTH.Repo do
+  use Ecto.Repo, otp_app: :wth
 
   @doc """
   Dynamically loads the repository url from the

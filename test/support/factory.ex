@@ -1,8 +1,8 @@
-defmodule Whathook.Factory do
-  use ExMachina.Ecto, repo: Whathook.Repo
+defmodule WTH.Factory do
+  use ExMachina.Ecto, repo: WTH.Repo
 
   def hook_factory do
-    %Whathook.Webhooks.Hook{
+    %WTH.Webhooks.Hook{
       code: "export default () => {}",
       endpoint: "http://example.com/callback"
     }

@@ -1,4 +1,4 @@
-defmodule Whathook.Webhooks.Hook do
+defmodule WTH.Webhooks.Hook do
   @moduledoc false
 
   use Ecto.Schema

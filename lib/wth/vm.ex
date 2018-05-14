@@ -1,4 +1,4 @@
-defmodule Whathook.VM do
+defmodule WTH.VM do
   require Logger
   use GenServer
 

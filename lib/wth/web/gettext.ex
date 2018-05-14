@@ -1,11 +1,11 @@
-defmodule Whathook.Web.Gettext do
+defmodule WTH.Web.Gettext do
   @moduledoc """
   A module providing Internationalization with a gettext-based API.
 
   By using [Gettext](https://hexdocs.pm/gettext),
   your module gains a set of macros for translations, for example:
 
-      import Whathook.Web.Gettext
+      import WTH.Web.Gettext
 
       # Simple translation
       gettext "Here is the string to translate"
@@ -20,5 +20,5 @@ defmodule Whathook.Web.Gettext do
 
   See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
   """
-  use Gettext, otp_app: :whathook
+  use Gettext, otp_app: :wth
 end

@@ -1,4 +1,4 @@
-defmodule Whathook.Application do
+defmodule WTH.Application do
   @moduledoc false
 
   use Application
@@ -11,16 +11,16 @@ defmodule Whathook.Application do
     # Define workers and child supervisors to be supervised
     children = [
       # Start the Ecto repository
-      supervisor(Whathook.Repo, []),
+      supervisor(WTH.Repo, []),
       # Start the endpoint when the application starts
-      supervisor(Whathook.Web.Endpoint, []),
-      # Start your own worker by calling: Whathook.Worker.start_link(arg1, arg2, arg3)
-      # worker(Whathook.Worker, [arg1, arg2, arg3]),
+      supervisor(WTH.Web.Endpoint, []),
+      # Start your own worker by calling: WTH.Worker.start_link(arg1, arg2, arg3)
+      # worker(WTH.Worker, [arg1, arg2, arg3]),
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Whathook.Supervisor]
+    opts = [strategy: :one_for_one, name: WTH.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end

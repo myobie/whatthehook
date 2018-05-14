@@ -1,4 +1,4 @@
-defmodule Whathook.Web.ChannelCase do
+defmodule WTH.Web.ChannelCase do
   @moduledoc """
   This module defines the test case to be used by
   channel tests.
@@ -19,17 +19,17 @@ defmodule Whathook.Web.ChannelCase do
     quote do
       # Import conveniences for testing with channels
       use Phoenix.ChannelTest
-      import Whathook.Factory
+      import WTH.Factory
 
       # The default endpoint for testing
-      @endpoint Whathook.Web.Endpoint
+      @endpoint WTH.Web.Endpoint
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Whathook.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(WTH.Repo)
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Whathook.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(WTH.Repo, {:shared, self()})
     end
     :ok
   end

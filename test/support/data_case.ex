@@ -1,4 +1,4 @@
-defmodule Whathook.DataCase do
+defmodule WTH.DataCase do
   @moduledoc """
   This module defines the setup for tests requiring
   access to the application's data layer.
@@ -16,21 +16,21 @@ defmodule Whathook.DataCase do
 
   using do
     quote do
-      alias Whathook.Repo
+      alias WTH.Repo
 
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
-      import Whathook.DataCase
-      import Whathook.Factory
+      import WTH.DataCase
+      import WTH.Factory
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Whathook.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(WTH.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Whathook.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(WTH.Repo, {:shared, self()})
     end
 
     :ok

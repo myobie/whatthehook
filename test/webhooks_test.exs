@@ -1,8 +1,8 @@
-defmodule Whathook.WebhooksTest do
-  use Whathook.DataCase
+defmodule WTH.WebhooksTest do
+  use WTH.DataCase
 
-  alias Whathook.Webhooks
-  alias Whathook.Webhooks.Hook
+  alias WTH.Webhooks
+  alias WTH.Webhooks.Hook
 
   test "get_hook returns the hook with given id" do
     hook = insert(:hook)

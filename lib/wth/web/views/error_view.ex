@@ -1,5 +1,5 @@
-defmodule Whathook.Web.ErrorView do
-  use Whathook.Web, :view
+defmodule WTH.Web.ErrorView do
+  use WTH.Web, :view
 
   def render("404.html", _assigns) do
     "Page not found"

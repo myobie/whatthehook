@@ -1,3 +1,3 @@
-defmodule Whathook.Web.LayoutViewTest do
-  use Whathook.Web.ConnCase, async: true
+defmodule WTH.Web.LayoutViewTest do
+  use WTH.Web.ConnCase, async: true
 end

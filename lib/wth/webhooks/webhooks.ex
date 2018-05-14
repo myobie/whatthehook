@@ -1,8 +1,8 @@
-defmodule Whathook.Webhooks do
+defmodule WTH.Webhooks do
   @moduledoc false
 
-  alias Whathook.Repo
-  alias Whathook.Webhooks.Hook
+  alias WTH.Repo
+  alias WTH.Webhooks.Hook
 
   @type not_found_error :: {:error, :not_found}
   @type changeset_error :: {:error, Ecto.Changeset.t}

@@ -1,4 +1,4 @@
-defmodule WTH.Web.ConnCase do
+defmodule WTHWeb.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -19,11 +19,11 @@ defmodule WTH.Web.ConnCase do
     quote do
       # Import conveniences for testing with connections
       use Phoenix.ConnTest
-      import WTH.Web.Router.Helpers
+      import WTHWeb.Router.Helpers
       import WTH.Factory
 
       # The default endpoint for testing
-      @endpoint WTH.Web.Endpoint
+      @endpoint WTHWeb.Endpoint
     end
   end
 

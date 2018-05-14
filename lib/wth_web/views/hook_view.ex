@@ -1,6 +1,6 @@
-defmodule WTH.Web.HookView do
-  use WTH.Web, :view
-  alias WTH.Web.HookView
+defmodule WTHWeb.HookView do
+  use WTHWeb, :view
+  alias WTHWeb.HookView
 
   def render("index.json", %{hooks: hooks}) do
     render_many(hooks, HookView, "hook.json")

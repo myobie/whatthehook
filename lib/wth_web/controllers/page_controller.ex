@@ -1,5 +1,5 @@
-defmodule WTH.Web.PageController do
-  use WTH.Web, :controller
+defmodule WTHWeb.PageController do
+  use WTHWeb, :controller
 
   def index(conn, _params) do
     render conn, "index.html"

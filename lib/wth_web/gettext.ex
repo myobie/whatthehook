@@ -1,11 +1,11 @@
-defmodule WTH.Web.Gettext do
+defmodule WTHWeb.Gettext do
   @moduledoc """
   A module providing Internationalization with a gettext-based API.
 
   By using [Gettext](https://hexdocs.pm/gettext),
   your module gains a set of macros for translations, for example:
 
-      import WTH.Web.Gettext
+      import WTHWeb.Gettext
 
       # Simple translation
       gettext "Here is the string to translate"

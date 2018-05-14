@@ -1,5 +1,5 @@
-defmodule WTH.Web.Router do
-  use WTH.Web, :router
+defmodule WTHWeb.Router do
+  use WTHWeb, :router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -13,13 +13,13 @@ defmodule WTH.Web.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", WTH.Web do
+  scope "/", WTHWeb do
     pipe_through :browser
 
     get "/", PageController, :index
   end
 
-  scope "/api", WTH.Web do
+  scope "/api", WTHWeb do
     pipe_through :api
 
     resources "/hooks", HookController, except: [:index, :new, :edit]

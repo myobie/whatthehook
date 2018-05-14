@@ -1,7 +1,7 @@
-defmodule WTH.Web.Endpoint do
+defmodule WTHWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :wth
 
-  socket "/socket", WTH.Web.UserSocket
+  socket "/socket", WTHWeb.UserSocket
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -38,7 +38,7 @@ defmodule WTH.Web.Endpoint do
     key: "_wth_key",
     signing_salt: "rfpksRoO"
 
-  plug WTH.Web.Router
+  plug WTHWeb.Router
 
   @doc """
   Dynamically loads configuration from the system environment

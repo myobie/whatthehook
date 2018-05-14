@@ -13,7 +13,7 @@ defmodule WTH.Application do
       # Start the Ecto repository
       supervisor(WTH.Repo, []),
       # Start the endpoint when the application starts
-      supervisor(WTH.Web.Endpoint, []),
+      supervisor(WTHWeb.Endpoint, []),
       # Start your own worker by calling: WTH.Worker.start_link(arg1, arg2, arg3)
       # worker(WTH.Worker, [arg1, arg2, arg3]),
     ]

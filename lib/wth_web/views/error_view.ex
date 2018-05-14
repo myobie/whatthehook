@@ -1,5 +1,5 @@
-defmodule WTH.Web.ErrorView do
-  use WTH.Web, :view
+defmodule WTHWeb.ErrorView do
+  use WTHWeb, :view
 
   def render("404.html", _assigns) do
     "Page not found"

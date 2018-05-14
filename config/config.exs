@@ -10,10 +10,10 @@ config :wth,
   ecto_repos: [WTH.Repo]
 
 # Configures the endpoint
-config :wth, WTH.Web.Endpoint,
+config :wth, WTHWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "wZE66xONEPPggjPXOr0rJPSb4oFUmaoZ1xJJLUr1Lm53c1QMMmY/VhwDqY1qfM9B",
-  render_errors: [view: WTH.Web.ErrorView, accepts: ~w(html json)],
+  render_errors: [view: WTHWeb.ErrorView, accepts: ~w(html json)],
   pubsub: [name: WTH.PubSub,
            adapter: Phoenix.PubSub.PG2]
 

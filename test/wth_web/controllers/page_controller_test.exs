@@ -1,5 +1,5 @@
-defmodule WTH.Web.PageControllerTest do
-  use WTH.Web.ConnCase
+defmodule WTHWeb.PageControllerTest do
+  use WTHWeb.ConnCase
 
   test "GET /", %{conn: conn} do
     conn = get conn, "/"

@@ -1,5 +1,5 @@
-defmodule WTH.Web.HookControllerTest do
-  use WTH.Web.ConnCase
+defmodule WTHWeb.HookControllerTest do
+  use WTHWeb.ConnCase
 
   alias WTH.Webhooks.Hook
 

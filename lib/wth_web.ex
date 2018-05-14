@@ -1,12 +1,12 @@
-defmodule WTH.Web do
+defmodule WTHWeb do
   @moduledoc """
   A module that keeps using definitions for controllers,
   views and so on.
 
   This can be used in your application as:
 
-      use WTH.Web, :controller
-      use WTH.Web, :view
+      use WTHWeb, :controller
+      use WTHWeb, :view
 
   The definitions below will be executed for every view,
   controller, etc, so keep them short and clean, focused
@@ -18,17 +18,17 @@ defmodule WTH.Web do
 
   def controller do
     quote do
-      use Phoenix.Controller, namespace: WTH.Web
+      use Phoenix.Controller, namespace: WTHWeb
       import Plug.Conn
-      import WTH.Web.Router.Helpers
-      import WTH.Web.Gettext
+      import WTHWeb.Router.Helpers
+      import WTHWeb.Gettext
     end
   end
 
   def view do
     quote do
-      use Phoenix.View, root: "lib/wth/web/templates",
-                        namespace: WTH.Web
+      use Phoenix.View, root: "lib/wth_web/templates",
+                        namespace: WTHWeb
 
       # Import convenience functions from controllers
       import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
@@ -36,9 +36,9 @@ defmodule WTH.Web do
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML
 
-      import WTH.Web.Router.Helpers
-      import WTH.Web.ErrorHelpers
-      import WTH.Web.Gettext
+      import WTHWeb.Router.Helpers
+      import WTHWeb.ErrorHelpers
+      import WTHWeb.Gettext
     end
   end
 
@@ -53,7 +53,7 @@ defmodule WTH.Web do
   def channel do
     quote do
       use Phoenix.Channel
-      import WTH.Web.Gettext
+      import WTHWeb.Gettext
     end
   end
 

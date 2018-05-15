@@ -2,12 +2,8 @@ defmodule WTH.VM do
   require Logger
   use GenServer
 
-  def start_link(name: name) do
-    GenServer.start_link(__MODULE__, %{}, name: name)
-  end
-
-  def prepare(vm, code) do
-    GenServer.call(vm, {:prepare, code})
+  def start_link(name: name, code: code) do
+    GenServer.start_link(__MODULE__, %{code: code}, name: name)
   end
 
   def execute(vm, args) do
@@ -23,27 +19,12 @@ defmodule WTH.VM do
   end
 
   def via(id) do
-    {:via, Registry, {WTH.VM.Registry, id}}
+    {:via, Registry, {WTH.VM.Registry, {:vm, id}}}
   end
 
-  def init(_) do
+  def init(%{code: code}) do
     Process.flag(:trap_exit, true)
 
-    state = %{
-      port: nil,
-      prepared?: false,
-      closing?: false,
-      executions: %{}
-    }
-    {:ok, state}
-  end
-
-  defp write(port, term) do
-    json = Poison.encode!(term)
-    true = Port.command(port, :erlang.term_to_binary(json))
-  end
-
-  def handle_call({:prepare, code}, _from, state) do
     port = Port.open(
       {:spawn_executable, System.find_executable("npm")},
       [:binary, :use_stdio, :stderr_to_stdout, :exit_status,
@@ -54,7 +35,31 @@ defmodule WTH.VM do
 
     write(port, %{type: :prepare, code: code})
 
-    {:reply, :ok, %{state | port: port}}
+    receive do
+      {^port, {:data, data}} ->
+        case :erlang.binary_to_term(data, [:safe]) do
+          {'ok', 'prepared'} ->
+            state = %{
+              port: port,
+              closing?: false,
+              executions: %{}
+            }
+
+            {:ok, state}
+          other ->
+            _ = Logger.error("Received unexpected message from port #{inspect(other)}")
+            {:error, other}
+        end
+      after
+        1_000 ->
+          _ = Logger.error("No data received from port after 1 second")
+          {:error, :failed_to_start}
+    end
+  end
+
+  defp write(port, term) do
+    json = Poison.encode!(term)
+    true = Port.command(port, :erlang.term_to_binary(json))
   end
 
   def handle_call(:close, _from, %{port: port, closing?: false} = state) when is_port(port) do
@@ -87,10 +92,6 @@ defmodule WTH.VM do
         executions = Map.delete(executions, uuid)
         {:noreply, %{state | executions: executions}}
     end
-  end
-
-  defp handle_port_data({'ok', 'prepared'}, state) do
-    {:noreply, %{state | prepared?: true}}
   end
 
   defp handle_port_data({'ok', uuid, result}, state) do

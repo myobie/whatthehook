@@ -1,11 +1,15 @@
-# Script for populating the database. You can run it as:
-#
-#     mix run priv/repo/seeds.exs
-#
-# Inside the script, you can read and write to any of your
-# repositories directly:
-#
-#     WTH.Repo.insert!(%WTH.SomeSchema{})
-#
-# We recommend using the bang functions (`insert!`, `update!`
-# and so on) as they will fail if something goes wrong.
+%WTH.Webhooks.Hook{
+  endpoint: "example.com",
+  code: """
+function request (req) {
+  const counter = req.state.counter || 0;
+
+  return fetch('http://google.com')
+    .then(res => {
+      res.state = { counter: counter + 1 }
+      return res
+    })
+}
+"""
+}
+|> WTH.Repo.insert!()

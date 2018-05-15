@@ -16,6 +16,8 @@ defmodule WTH.Application do
       supervisor(WTHWeb.Endpoint, []),
       # Start your own worker by calling: WTH.Worker.start_link(arg1, arg2, arg3)
       # worker(WTH.Worker, [arg1, arg2, arg3]),
+
+      {Registry, keys: :unique, name: WTH.VM.Registry}
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

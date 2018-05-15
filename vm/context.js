@@ -148,7 +148,7 @@ module.exports = class Context {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         // reject(new Error('request failed'))
-        resolve({status: 500, body: ''})
+        resolve({status: 200, body: '...'})
       }, 1000)
     })
   }

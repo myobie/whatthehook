@@ -2,10 +2,34 @@ defmodule WTH.VM do
   require Logger
   use GenServer
 
-  def init(%{notify: pid}) do
+  def start_link(name: name) do
+    GenServer.start_link(__MODULE__, %{}, name: name)
+  end
+
+  def prepare(vm, code) do
+    GenServer.call(vm, {:prepare, code})
+  end
+
+  def execute(vm, args) do
+    GenServer.call(vm, {:execute, args})
+  end
+
+  def close(vm) do
+    GenServer.call(vm, :close)
+  end
+
+  def stop(vm) do
+    GenServer.stop(vm)
+  end
+
+  def via(id) do
+    {:via, Registry, {WTH.VM.Registry, id}}
+  end
+
+  def init(_) do
     Process.flag(:trap_exit, true)
+
     state = %{
-      notify: pid,
       port: nil,
       prepared?: false,
       closing?: false,
@@ -19,7 +43,7 @@ defmodule WTH.VM do
     true = Port.command(port, :erlang.term_to_binary(json))
   end
 
-  def handle_call({:start, code}, _from, state) do
+  def handle_call({:prepare, code}, _from, state) do
     port = Port.open(
       {:spawn_executable, System.find_executable("npm")},
       [:binary, :use_stdio, :stderr_to_stdout, :exit_status,
@@ -28,33 +52,40 @@ defmodule WTH.VM do
        {:cd, Path.absname('./vm/')}]
     )
 
-    write(port, %{type: :code, code: code})
+    write(port, %{type: :prepare, code: code})
 
-    state = Map.put(state, :port, port)
-
-    {:reply, :ok, state}
+    {:reply, :ok, %{state | port: port}}
   end
 
-  def handle_call(:close, _from, %{port: port} = state) do
-    unless state.closing? do
-      Port.close(port)
-    end
+  def handle_call(:close, _from, %{port: port, closing?: false} = state) when is_port(port) do
+    Port.close(port)
     {:reply, :ok, %{state | closing?: true}}
   end
 
   def handle_call(:close, _from, state) do
-    _ = Logger.debug("Closing a port that is not open #{inspect(self())}")
     {:reply, :ok, state}
   end
 
-  def handle_call({:execute, args}, _from, %{port: port, executions: executions} = state) do
-    cond do
-      not state.prepared? -> {:reply, {:error, :unprepared}, state}
-      true ->
-        uuid = SecureRandom.uuid()
-        executions = Map.put(executions, uuid, args)
-        write(port, %{type: :args, args: args, uuid: uuid})
-        {:reply, {:ok, uuid}, %{state | executions: executions}}
+  def handle_call({:execute, _args}, _from, %{prepared?: false} = state) do
+    {:reply, {:error, :unprepared}, state}
+  end
+
+  def handle_call({:execute, args}, {pid, _ref}, %{port: port, executions: executions} = state) do
+    uuid = SecureRandom.uuid()
+    executions = Map.put(executions, uuid, %{args: args, pid: pid})
+    write(port, %{type: :execute, args: args, uuid: uuid})
+    {:reply, {:ok, uuid}, %{state | executions: executions}}
+  end
+
+  defp send_back(%{executions: executions} = state, {_, uuid, _} = msg) do
+    case Map.fetch(executions, uuid) do
+      :error ->
+        _ = Logger.error("Execution missing for #{uuid}")
+        {:noreply, state}
+      {:ok, %{pid: pid}} ->
+        send(pid, msg)
+        executions = Map.delete(executions, uuid)
+        {:noreply, %{state | executions: executions}}
     end
   end
 
@@ -62,14 +93,12 @@ defmodule WTH.VM do
     {:noreply, %{state | prepared?: true}}
   end
 
-  defp handle_port_data({'ok', uuid, result}, %{notify: pid} = state) do
-    send(pid, {:ok, to_string(uuid), to_string(result)})
-    {:noreply, state}
+  defp handle_port_data({'ok', uuid, result}, state) do
+    send_back(state, {:ok, to_string(uuid), to_string(result)})
   end
 
-  defp handle_port_data({'error', uuid, result}, %{notify: pid} = state) do
-    send(pid, {:error, to_string(uuid), to_string(result)})
-    {:noreply, state}
+  defp handle_port_data({'error', uuid, result}, state) do
+    send_back(state, {:error, to_string(uuid), to_string(result)})
   end
 
   defp handle_port_data(term, state) do

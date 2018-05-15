@@ -23,18 +23,18 @@ function callback (term, next) {
 
   const json = JSON.parse(term)
 
-  if (json.type === 'code') {
-    start(json.code, next)
-  } else if (json.type === 'args') {
+  if (json.type === 'prepare') {
+    prepare(json.code, next)
+  } else if (json.type === 'execute') {
     execute(json.args, json.uuid, next)
   } else {
     next(['error', 'unknown message'])
   }
 }
 
-function start (code, next) {
+function prepare (code, next) {
   if (context !== undefined) {
-    next(['error', 'context already started'])
+    next(['error', 'context already prepared'])
     return
   }
 
@@ -50,7 +50,7 @@ function start (code, next) {
 
 function execute (args, uuid, next) {
   if (context === undefined) {
-    next(['error', 'context not started'])
+    next(['error', 'context unprepared'])
     return
   }
 

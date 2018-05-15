@@ -17,7 +17,7 @@ Then:
 ```sh
 $ mix hex.local
 $ mix deps.get
-$ mix ecto.create
+$ mix ecto.reset
 $ mix dialyxir.setup
 $ cd assets && npm install && cd -
 ```
@@ -53,11 +53,10 @@ mix do dialyxir, credo
 This something like this:
 
 ```iex
-iex(1)> {:ok, pid} = GenServer.start_link(WTH.VM, %{})
-iex(2)> GenServer.call(pid, {:start, "function request (req) { return {status: 200, body: { counter: req.params.counter * 2 }} }"})
-iex(3)> GenServer.call(pid, {:execute, [%{params: %{counter: 4}}]})
-iex(4)> GenServer.call(pid, {:execute, [%{params: %{counter: 22}}]})
-iex(5)> GenServer.call(pid, :close)
+iex(1)> hook = WTH.Repo.get(WTH.Webhooks.Hook, 1)
+iex(2)> WTH.Webhooks.Supervisor.execute(hook, "a", %{})
+iex(3)> WTH.Webhooks.Supervisor.execute(hook, "a", %{})
+iex(4)> WTH.Webhooks.Supervisor.execute(hook, "b", %{})
 ```
 
 Also `$ tail -f vm/debug.log` to see what the node vm thinks is going on.

@@ -5,19 +5,22 @@ defmodule WTH.Webhooks.Supervisor do
   #   * Each Executor is the combination of a Hook id and a state map
   #   * An Executor can only perform one execution at a time (waits on an execution to finish)
 
-  use Supervisor
+  use GenServer
 
-  alias WTH.Webhooks.Hook
   alias WTH.VM
   alias WTH.VM.Executor
 
-  def start_link(%Hook{} = hook) do
-    Supervisor.start_link(__MODULE__, %{hook: hook})
+  def start_link(hook: hook) do
+    GenServer.start_link(__MODULE__, %{hook: hook}, name: via(:sup, hook.id))
   end
 
   def boot_sup(hook) do
-    case GenServer.whereis(via(hook.id)) do
-      nil -> start_link(hook)
+    case GenServer.whereis(via(:sup, hook.id)) do
+      nil ->
+        DynamicSupervisor.start_child(
+          WTH.Webhooks.SupervisorSupervisor,
+          {__MODULE__, hook: hook}
+        )
       pid -> {:ok, pid}
     end
   end
@@ -26,7 +29,7 @@ defmodule WTH.Webhooks.Supervisor do
     case GenServer.whereis(Executor.via(state_id)) do
       nil ->
         DynamicSupervisor.start_child(
-          via(hook.id),
+          via(:exe_sup, hook.id),
           {Executor, vm: VM.via(hook.id), state_id: state_id}
         )
       pid -> {:ok, pid}
@@ -40,16 +43,16 @@ defmodule WTH.Webhooks.Supervisor do
     end
   end
 
-  def via(id) do
-    {:via, Registry, {WTH.VM.Registry, {:sup, id}}}
+  def via(type, id) do
+    {:via, Registry, {WTH.VM.Registry, {type, id}}}
   end
 
   def init(%{hook: hook}) do
     children = [
       {VM, name: VM.via(hook.id), code: hook.code},
-      {DynamicSupervisor, strategy: :one_for_one, name: via(hook.id)}
+      {DynamicSupervisor, strategy: :one_for_one, name: via(:exe_sup, hook.id)}
     ]
 
-    Supervisor.init(children, strategy: :one_for_all)
+    Supervisor.start_link(children, strategy: :one_for_all)
   end
 end

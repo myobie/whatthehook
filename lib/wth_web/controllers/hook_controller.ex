@@ -1,4 +1,5 @@
 defmodule WTHWeb.HookController do
+  require Logger
   use WTHWeb, :controller
 
   alias WTH.Webhooks
@@ -48,7 +49,8 @@ defmodule WTHWeb.HookController do
           conn
           |> put_resp_header("X-Hook-State", state)
           |> send_resp(status, body)
-        _ ->
+        other ->
+          Logger.debug(inspect(other))
           send_resp(conn, 500, "ooooooh snap you broke it!")
       end
     end

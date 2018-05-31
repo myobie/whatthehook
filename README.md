@@ -31,7 +31,7 @@ mix phx.server
 or interactive `iex` with:
 
 ```sh
-iex -S mix
+iex -S mix phx.server
 ```
 
 ## Tests
@@ -54,9 +54,18 @@ This something like this:
 
 ```iex
 iex(1)> hook = WTH.Repo.get(WTH.Webhooks.Hook, 1)
-iex(2)> WTH.Webhooks.Supervisor.execute(hook, "a", %{})
-iex(3)> WTH.Webhooks.Supervisor.execute(hook, "a", %{})
-iex(4)> WTH.Webhooks.Supervisor.execute(hook, "b", %{})
+iex(2)> WTH.Webhooks.execute_hook(hook, "a", %{})
+```
+
+Or with `curl`:
+
+```sh
+$ curl -i http://0.0.0.0:4000/hooks/1/a
+$ curl -i http://0.0.0.0:4000/hooks/1/a
+$ curl -i http://0.0.0.0:4000/hooks/1/b
+
+$ curl -s http://0.0.0.0:4000/api/hooks/1 | jq -r '.code'
+$ curl -s http://0.0.0.0:4000/api/hooks/2 | jq -r '.code'
 ```
 
 Also `$ tail -f vm/debug.log` to see what the node vm thinks is going on.

@@ -17,6 +17,7 @@ defmodule WTHWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    get "/hooks/:id/:state_id", HookController, :execute
   end
 
   scope "/api", WTHWeb do

@@ -34,4 +34,23 @@ defmodule WTHWeb.HookController do
       send_resp(conn, :no_content, "")
     end
   end
+
+  @fake_body %{"fake" => "data"}
+
+  def execute(conn, %{"id" => id, "state_id" => state_id}) do
+    with {:ok, %Hook{} = hook} <- Webhooks.get_hook(id) do
+      case Webhooks.execute_hook(hook, state_id, %{body: @fake_body}) do
+        {:ok, result} ->
+          status = Map.get(result, "status", 200)
+          body = Map.get(result, "body", "")
+          state = Poison.encode!(Map.get(result, "state", %{}))
+
+          conn
+          |> put_resp_header("X-Hook-State", state)
+          |> send_resp(status, body)
+        _ ->
+          send_resp(conn, 500, "ooooooh snap you broke it!")
+      end
+    end
+  end
 end

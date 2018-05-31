@@ -33,4 +33,8 @@ defmodule WTH.Webhooks do
   def delete_hook(%Hook{} = hook) do
     Repo.delete(hook)
   end
+
+  def execute_hook(%Hook{} = hook, state_id, request_info) do
+    WTH.Webhooks.Supervisor.execute(hook, state_id, request_info)
+  end
 end

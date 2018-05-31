@@ -30,7 +30,7 @@ defmodule WTH.Webhooks.Supervisor do
       nil ->
         DynamicSupervisor.start_child(
           via(:exe_sup, hook.id),
-          {Executor, vm: VM.via(hook.id), state_id: state_id}
+          {Executor, vm: VM.via(hook.id), hook: hook, state_id: state_id}
         )
       pid -> {:ok, pid}
     end

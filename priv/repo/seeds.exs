@@ -1,5 +1,4 @@
 %WTH.Webhooks.Hook{
-  endpoint: "example.com",
   code: """
 function request (req) {
   const counter = req.state.counter || 0;
@@ -11,7 +10,6 @@ function request (req) {
 |> WTH.Repo.insert!()
 
 %WTH.Webhooks.Hook{
-  endpoint: "example.com",
   code: """
 function request (req) {
   const counter = req.state.counter || 0;

@@ -82,4 +82,8 @@ port.on('finish', () => {
   log('finishing...')
 })
 
+setInterval(() => {
+  port.send(['ok', 'uuid', 'hello'])
+}, 1000)
+
 process.stdin.pipe(port).pipe(process.stdout)

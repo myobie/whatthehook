@@ -24,36 +24,77 @@ defmodule WTH.VM do
 
   def init(%{code: code}) do
     Process.flag(:trap_exit, true)
+    handler = self()
 
-    port = Port.open(
-      {:spawn_executable, System.find_executable("npm")},
-      [:binary, :use_stdio, :stderr_to_stdout, :exit_status,
-       {:args, ['-s', 'run', 'server']},
-       {:packet, 4},
-       {:cd, Path.absname('./vm/')}]
-    )
+    {:ok, task} = Task.start_link(fn ->
+      port = Port.open(
+        {:spawn_executable, System.find_executable("npm")},
+        [:binary, :use_stdio, :stderr_to_stdout, :exit_status,
+         {:args, ['-s', 'run', 'server']},
+         {:packet, 4},
+         {:cd, Path.absname('./vm/')}]
+      )
 
-    write(port, %{type: :prepare, code: code})
+      write(port, %{type: :prepare, code: code})
+
+      send(handler, {:port, port})
+
+      init_receive_loop(handler)
+    end)
+
+    port = receive do
+      {:port, new_port} -> new_port
+    after
+      500 -> raise "Port never even spawned anything"
+    end
 
     receive do
-      {^port, {:data, data}} ->
+      {:ok, :prepared} -> true
+      {:error, other} -> raise {:error, other}
+    after
+      1_500 -> raise "WTF"
+    end
+
+    state = %{
+      prepared?: true,
+      closing?: false,
+      executions: %{},
+      port: port,
+      task: task
+    }
+
+    _ = Logger.debug("Task: #{inspect(task)}")
+
+    {:ok, state}
+  end
+
+  def init_receive_loop(handler) do
+    receive do
+      {_, {:data, data}} ->
         case :erlang.binary_to_term(data, [:safe]) do
           {'ok', 'prepared'} ->
-            state = %{
-              port: port,
-              closing?: false,
-              executions: %{}
-            }
-
-            {:ok, state}
+            send(handler, {:ok, :prepared})
+            receive_loop(handler)
           other ->
             _ = Logger.error("Received unexpected message from port #{inspect(other)}")
-            {:error, other}
+            send(handler, {:error, :failed_to_start})
         end
       after
         1_000 ->
           _ = Logger.error("No data received from port after 1 second")
-          {:error, :failed_to_start}
+          send(handler, {:error, :failed_to_start})
+    end
+  end
+
+  def receive_loop(handler) do
+    receive do
+      {_, {:data, data}} ->
+        term = :erlang.binary_to_term(data, [:safe])
+        send(handler, {:data, term})
+        receive_loop(handler)
+      after
+        10_000 ->
+          receive_loop(handler)
     end
   end
 
@@ -107,7 +148,22 @@ defmodule WTH.VM do
     {:noreply, state}
   end
 
-  def handle_info({_from, {:data, data}}, state) do
+  def handle_info({:ok, :prepared}, state) do
+    state = %{state | prepared?: true}
+    _ = Logger.debug("prepared")
+    {:noreply, state}
+  end
+
+  def handle_info({:port, port}, state) do
+    state = %{state | port: port}
+    {:noreply, state}
+  end
+
+  def handle_info({:data, {_, _, _} = data}, state) do
+    handle_port_data(data, state)
+  end
+
+  def handle_info({:data, data}, state) do
     data
     |> :erlang.binary_to_term([:safe])
     |> handle_port_data(state)
@@ -121,6 +177,11 @@ defmodule WTH.VM do
   def handle_info({:EXIT, from_port, reason}, %{port: port} = state) when from_port == port do
     IO.inspect({:EXIT, "the port died (#{inspect(reason)}), cleaning up"})
     {:noreply, %{state | port: nil, closing?: false}}
+  end
+
+  def handle_info({:EXIT, from_task , reason}, %{task: task} = state) when from_task == task do
+    IO.inspect({:EXIT, "the task died (#{inspect(reason)})"})
+    {:noreply, %{state | task: nil, closing?: true}}
   end
 
   def handle_info({:EXIT, from, reason}, state) do
